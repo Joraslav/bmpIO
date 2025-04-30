@@ -1,5 +1,6 @@
 #include "BMPProcessor.hpp"
 
+#include <cmath>
 #include <iostream>
 #include <stdexcept>
 
@@ -18,7 +19,7 @@ namespace bmp
         }
 
         width_ = static_cast<int>(info_header_.bi_width);
-        height_ = static_cast<int>(info_header_.bi_height);
+        height_ = std::abs(static_cast<int>(info_header_.bi_height));
         bits_per_pixel_ = static_cast<int>(info_header_.bi_bit_count);
 
         if (bits_per_pixel_ != 24 && bits_per_pixel_ != 32)
@@ -48,6 +49,13 @@ namespace bmp
                 if (bytes_per_pixel == 4)
                 {
                     p.a = row[x * bytes_per_pixel + 3];
+                }
+
+                const bool is_black = (p.red == 0 && p.green == 0 && p.blue == 0);
+                const bool is_white = (p.red == 255 && p.green == 255 && p.blue == 255);
+                if (!is_black && !is_white)
+                {
+                    throw std::runtime_error("Image contains colors other than black and white"s);
                 }
             }
         }
@@ -120,14 +128,7 @@ namespace bmp
             for (int x = 0; x < width_; ++x)
             {
                 const Pixel &p = pixels_[y * width_ + x];
-                if (p.red == 255 && p.green == 255 && p.blue == 255)
-                {
-                    std::cout << " ";
-                }
-                else
-                {
-                    std::cout << "#";
-                }
+                std::cout << (p.red == 255 && p.green == 255 && p.blue == 255 ? " " : "#");
             }
             std::cout << "\n";
         }
@@ -135,17 +136,25 @@ namespace bmp
 
     void BMPProcessor::DrawLine(int x1, int y1, int x2, int y2)
     {
-        int dx = abs(x2 - x1);
-        int dy = abs(y2 - y1);
-        int sx = (x1 < x2) ? 1 : -1;
-        int sy = (y1 < y2) ? 1 : -1;
+        int dx = std::abs(x2 - x1);
+        int dy = std::abs(y2 - y1);
+        int sx = x1 < x2 ? 1 : -1;
+        int sy = y1 < y2 ? 1 : -1;
         int err = dx - dy;
 
         while (true)
         {
             if (x1 >= 0 && x1 < width_ && y1 >= 0 && y1 < height_)
             {
-                pixels_[y1 * width_ + x1] = {0, 0, 0, 0};
+                Pixel &p = pixels_[y1 * width_ + x1];
+                if (p.red == 0 && p.green == 0 && p.blue == 0)
+                {
+                    p = {255, 255, 255, 0}; 
+                }
+                else
+                {
+                    p = {0, 0, 0, 0}; 
+                }
             }
 
             if (x1 == x2 && y1 == y2)

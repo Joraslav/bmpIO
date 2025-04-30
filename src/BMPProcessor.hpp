@@ -24,7 +24,6 @@ namespace bmp
         void WritePixels(std::ofstream &file) const;
 
         int GetRowSize() const;
-        void ValidateImage() const;
 
     public:
         BMPProcessor() = default;
