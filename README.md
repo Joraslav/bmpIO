@@ -34,7 +34,7 @@
 
    ```bash
    git clone https://github.com/Joraslav/bmpIO.git
-   cd Effective-Mobile
+   cd bmpIO
 2. **Соберите проект с помощью CMake**:
 
    ```bash
